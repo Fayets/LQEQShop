@@ -56,8 +56,8 @@ Cada navegador tiene un id al azar; con eso se une todo lo que hizo esa persona.
   pedidos, ventas confirmadas, el embudo (entró → miró → carrito → empezó el pedido →
   pidió), de dónde vienen (Instagram, WhatsApp, Google…), celular vs. compu, día por día,
   prendas más miradas/pedidas y stock por agotarse.
-- **Visitas y carritos**: una fila por persona, con filtros *Armaron carrito*,
-  *Lo dejaron* y *Pidieron*. Tocando una se ve su recorrido completo.
+- **Carritos que quedaron sin pedido** (en el Resumen): qué prendas dejó cada persona y de
+  dónde vino. Tocando uno se ve su recorrido completo.
 
 El origen sale de los `utm_source`, del referrer o del navegador interno de
 Instagram/Facebook. Para links propios conviene agregar `?utm_source=instagram` (o

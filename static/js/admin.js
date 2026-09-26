@@ -22,7 +22,7 @@
     return data;
   }
   const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-  let days = 30, month = null, statusFilter = "", visFilter = "all", products = [], cats = [], settings = {}, editing = null;
+  let days = 30, month = null, statusFilter = "", products = [], cats = [], settings = {}, editing = null;
   let pending = [];  // fotos elegidas antes de que la prenda exista: se suben al guardar
 
   // ------------------------------------------------ login
@@ -42,7 +42,7 @@
   $("#logout").onclick = async () => { await api("/api/admin/logout", { method: "POST" }).catch(() => {}); showLogin(); };
 
   // ------------------------------------------------ pestañas
-  const LOADERS = { resumen: loadStats, visitas: loadVisitors, pedidos: loadOrders, productos: loadProducts, portada: loadHome, ajustes: loadSettings };
+  const LOADERS = { resumen: loadStats, pedidos: loadOrders, productos: loadProducts, portada: loadHome, ajustes: loadSettings };
   $$("[data-tab]").forEach(b => b.onclick = () => showTab(b.dataset.tab));
   function showTab(name) {
     $$("[data-tab]").forEach(b => b.classList.toggle("on", b.dataset.tab === name));
@@ -59,7 +59,6 @@
     loadStats();
   });
   $("#monthSel").onchange = () => { month = $("#monthSel").value; loadStats(); };
-  $("#seeAbandoned").onclick = () => { visFilter = "abandoned"; $$("#visSeg button").forEach(x => x.classList.toggle("on", x.dataset.f === "abandoned")); showTab("visitas"); };
   function fillMonths(first) {
     const sel = $("#monthSel"); if (sel.options.length) return;
     let y = new Date().getFullYear(), m = new Date().getMonth() + 1; const [fy, fm] = first.split("-").map(Number);
@@ -117,25 +116,7 @@
     });
   }
 
-  // ------------------------------------------------ visitas
-  $$("#visSeg button").forEach(b => b.onclick = () => { visFilter = b.dataset.f; $$("#visSeg button").forEach(x => x.classList.toggle("on", x === b)); loadVisitors(); });
-  $("#visDays").onchange = () => loadVisitors();
-  async function loadVisitors() {
-    const vs = await api(`/api/admin/visitors?days=${$("#visDays").value}&filter=${visFilter}`);
-    const list = $("#vlist");
-    if (!vs.length) { list.innerHTML = `<div class="empty">No hay nadie en este filtro todavía.</div>`; return; }
-    list.innerHTML = vs.map(v => {
-      const items = v.cart_items || [];
-      const state = v.order_code ? `<span class="st order">Pidió ${esc(v.order_code)}</span><small>${esc(v.customer_name || "")} · ${esc(v.order_status)}</small>`
-        : items.length ? `<span class="st left">Dejó el carrito</span><small>${when(v.cart_updated)}</small>` : `<span class="st look">Solo miró</span>`;
-      return `<div class="vrow" data-sid="${esc(v.session_id)}">
-        <div class="vwhen"><b>${when(v.last_seen)}</b><small>${esc(v.device)}${v.visits > 1 ? ` · volvió ${v.visits} veces` : ""}</small><br><span class="src ${esc(v.source)}">${esc(v.source)}</span></div>
-        <div class="vseen"><div class="vlabel">Miró</div>${v.viewed.length ? v.viewed.slice(0, 5).map(esc).join(", ") + (v.viewed.length > 5 ? ` y ${v.viewed.length - 5} más` : "") : '<span class="muted">Solo la portada</span>'}</div>
-        <div class="vcart"><div class="vlabel">Carrito</div>${items.length ? `<b>${money(v.cart_total)}</b> · ${items.map(i => `${i.qty > 1 ? i.qty + " × " : ""}${esc(i.name)}${i.size ? ` (${esc(i.size)})` : ""}`).join(", ")}` : '<span class="muted">—</span>'}</div>
-        <div class="vstate">${state}</div></div>`;
-    }).join("");
-    $$(".vrow").forEach(r => r.onclick = () => openTimeline(r.dataset.sid));
-  }
+  // ------------------------------------------------ recorrido de una visita (desde los carritos del resumen)
   async function openTimeline(sid) {
     const t = await api(`/api/admin/visitors/${encodeURIComponent(sid)}`);
     const v = t.visitor;

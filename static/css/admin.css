@@ -119,22 +119,9 @@ textarea{resize:vertical}
 .mini-row:last-child{border-bottom:0}
 .mini-row small{color:var(--muted);font-size:12px;grid-column:1/-1}
 
-/* visitas */
-.vlist{display:grid;gap:10px}
-.vrow{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:grid;grid-template-columns:120px minmax(0,1fr) minmax(0,1.1fr) 190px;gap:16px;align-items:start;cursor:pointer;font-size:14px}
-.vrow:hover{border-color:var(--brown)}
-.vwhen b{display:block;font-weight:600}
-.vwhen small{color:var(--muted);font-size:12px}
+/* chips de origen */
 .src{display:inline-block;font-size:12px;font-weight:500;padding:2px 9px;border-radius:99px;background:var(--olive-soft);color:#5f611c;margin-top:6px}
 .src.Instagram{background:#fbe3ee;color:#9b2d61}.src.WhatsApp{background:#dcf5e5;color:#1f6b3d}.src.Facebook{background:#e2eaf9;color:#2b4f95}.src.Google{background:#fdf0d6;color:#8a5b0d}
-.vlabel{font-size:12px;color:var(--muted);margin-bottom:2px}
-.vcart b{font-weight:600}
-.vstate{justify-self:end;text-align:right}
-.st{display:inline-block;font-size:12px;font-weight:600;padding:4px 10px;border-radius:99px}
-.st.order{background:#dcf5e5;color:var(--ok)}
-.st.left{background:#fff1d6;color:var(--warn)}
-.st.look{background:#f0eee8;color:var(--muted)}
-.vstate small{display:block;color:var(--muted);font-size:12px;margin-top:4px}
 .empty{background:#fff;border:1px dashed var(--line);border-radius:14px;padding:30px;text-align:center;color:var(--muted)}
 
 /* recorrido */
@@ -238,8 +225,6 @@ textarea{resize:vertical}
 
 /* celular */
 @media (max-width:1100px){
-  .vrow{grid-template-columns:110px minmax(0,1fr) 170px}
-  .vrow .vseen{display:none}
   .orow{grid-template-columns:minmax(0,1fr) 150px}
   .orow .total{text-align:left}
   .onote{grid-column:1/-1}
@@ -247,7 +232,7 @@ textarea{resize:vertical}
 @media (max-width:860px){
   .app{grid-template-columns:minmax(0,1fr)}
   .side{display:none}
-  .tabbar{display:grid;grid-template-columns:repeat(6,1fr);position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--line);padding:6px 2px calc(6px + env(safe-area-inset-bottom))}
+  .tabbar{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--line);padding:6px 2px calc(6px + env(safe-area-inset-bottom))}
   .tabbar button{background:none;border:0;display:grid;justify-items:center;gap:2px;font-size:10px;color:var(--muted);position:relative;padding:4px 0}
   .tabbar button.on{color:var(--brown);font-weight:600}
   .tabbar .dot{position:absolute;top:2px;right:calc(50% - 16px);width:8px;height:8px;border-radius:50%;background:var(--wine)}
@@ -256,9 +241,6 @@ textarea{resize:vertical}
   .kpis{grid-template-columns:1fr 1fr}
   .kpi b{font-size:24px}
   .grid2,.row2,.row3{grid-template-columns:minmax(0,1fr)}
-  .vrow{grid-template-columns:minmax(0,1fr) auto;gap:8px 12px}
-  .vrow .vcart{grid-column:1/-1}
-  .vstate{grid-row:1;grid-column:2}
   .orow{grid-template-columns:minmax(0,1fr)}
   .prow{grid-template-columns:48px minmax(0,1fr) auto}
   .prow .stock{display:none}
