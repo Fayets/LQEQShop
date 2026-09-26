@@ -16,19 +16,10 @@ categories = CategoryServices()
 
 
 def transfer_price_for(p: dict, settings: dict) -> float:
-    """Precio con transferencia: el cargado a mano, o el de lista menos el % de Ajustes."""
-    if p.get("transfer_price") not in (None, "", 0):
-        return float(p["transfer_price"])
+    """Precio único por prenda: pagando con transferencia o efectivo se descuenta el % de
+    Ajustes (10% por defecto). No hay precios cargados a mano por medio de pago."""
     pct = float(settings.get("transfer_discount_pct") or 0)
     return round(float(p["price"]) * (1 - pct / 100))
-
-
-def card_price_for(p: dict, settings: dict) -> float:
-    """Precio con tarjeta: el cargado a mano, o el de lista más el % de recargo de Ajustes."""
-    if p.get("card_price") not in (None, "", 0):
-        return float(p["card_price"])
-    pct = float(settings.get("card_surcharge_pct") or 0)
-    return round(float(p["price"]) * (1 + pct / 100))
 
 
 class ProductServices:
@@ -57,11 +48,12 @@ class ProductServices:
         for c in rows(con.execute(f"SELECT id, product_id, name, hex, position FROM product_colors WHERE product_id IN ({marks}) ORDER BY position, id", ids)):
             colors.setdefault(c["product_id"], []).append(c)
         for p in prods:
+            p.pop("card_price", None)       # columnas viejas: el precio es único
+            p.pop("transfer_price", None)
             p["images"] = imgs.get(p["id"], [])
             p["sizes"] = sizes.get(p["id"], [])
             p["colors"] = colors.get(p["id"], [])
             p["transfer_price_final"] = transfer_price_for(p, settings)
-            p["card_price_final"] = card_price_for(p, settings)
             p["total_stock"] = sum(s["stock"] for s in p["sizes"])
             # sin talles cargados, la prenda se vende sin control de stock
             p["sold_out"] = bool(p["sizes"]) and p["total_stock"] == 0
@@ -85,10 +77,10 @@ class ProductServices:
             # las nuevas van primero: aparecen arriba en el panel y en NEW IN
             con.execute("UPDATE products SET sort_order = sort_order + 1")
             cur = con.execute(
-                "INSERT INTO products(slug, name, description, category, price, compare_price, transfer_price, card_price, featured, active, sort_order) "
-                "VALUES (?,?,?,?,?,?,?,?,?,?,0)",
+                "INSERT INTO products(slug, name, description, category, price, compare_price, featured, active, sort_order) "
+                "VALUES (?,?,?,?,?,?,?,?,0)",
                 (self._unique_slug(con, body.name), body.name.strip(), body.description, category, body.price,
-                 body.compare_price or None, body.transfer_price or None, body.card_price or None, int(body.featured), int(body.active)),
+                 body.compare_price or None, int(body.featured), int(body.active)),
             )
             pid = cur.lastrowid
             self._save_sizes(con, pid, body.sizes)
@@ -103,10 +95,10 @@ class ProductServices:
             category = categories.ensure(con, body.category)
             slug = old["slug"] if old["name"] == body.name.strip() else self._unique_slug(con, body.name, pid)
             con.execute(
-                "UPDATE products SET slug=?, name=?, description=?, category=?, price=?, compare_price=?, transfer_price=?, card_price=?, featured=?, "
-                "active=?, updated_at=datetime('now','localtime') WHERE id=?",
+                "UPDATE products SET slug=?, name=?, description=?, category=?, price=?, compare_price=?, featured=?, active=?, "
+                "updated_at=datetime('now','localtime') WHERE id=?",
                 (slug, body.name.strip(), body.description, category, body.price, body.compare_price or None,
-                 body.transfer_price or None, body.card_price or None, int(body.featured), int(body.active), pid),
+                 int(body.featured), int(body.active), pid),
             )
             self._save_sizes(con, pid, body.sizes)
             self._save_colors(con, pid, body.colors)
@@ -119,7 +111,7 @@ class ProductServices:
             p = self.get_one(con, pid)
         return self.create(ProductIn(
             name=p["name"] + " (copia)", description=p["description"], category=p["category"], price=p["price"],
-            compare_price=p["compare_price"], transfer_price=p["transfer_price"], card_price=p["card_price"], featured=bool(p["featured"]), active=False,
+            compare_price=p["compare_price"], featured=bool(p["featured"]), active=False,
             sizes=[SizeIn(size=s["size"], stock=s["stock"]) for s in p["sizes"]],
             colors=[ColorIn(name=c["name"], hex=c["hex"]) for c in p["colors"]],
         ))

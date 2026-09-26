@@ -42,6 +42,8 @@ Además: `main.py` (arma la app), `config.py` (rutas y constantes), `schemas.py`
 
 1. La clienta elige color y talle, **Agregar al carrito**, completa nombre, WhatsApp,
    entrega y forma de pago, y toca **Enviar pedido por WhatsApp**.
+   Cada prenda tiene **un solo precio**; pagando con transferencia o efectivo se descuenta
+   el % de Ajustes (10%). Con tarjeta se paga el precio de lista.
 2. El servidor recalcula los precios contra el catálogo (el navegador no manda precios),
    crea el pedido `LQ-0001` y abre WhatsApp con el detalle.
 3. El pedido **no descuenta stock** al crearse: es una intención de compra.

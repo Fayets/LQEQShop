@@ -180,7 +180,6 @@ DEFAULT_SETTINGS = {
     "whatsapp_greeting": "¡Hola! Quiero hacer este pedido:",
     "transfer_discount_pct": "10",
     "installments": "3",
-    "card_surcharge_pct": "0",
     "banner_text": "🤍 ENVÍOS A TODO EL PAÍS 🤍 | 🤍 10% OFF ABONANDO CON TRANSFERENCIA 🤍 | 🤍 3 CUOTAS SIN INTERÉS 🤍",
     "section_featured_title": "PREVIEW PRIMAVERA",
     "section_new_title": "NEW IN",
@@ -235,6 +234,10 @@ def _migrate(con) -> None:
     cols = {r["name"] for r in con.execute("PRAGMA table_info(products)")}
     if "card_price" not in cols:
         con.execute("ALTER TABLE products ADD COLUMN card_price REAL")
+    # precio único desde el 27-09-2026: los precios por medio de pago cargados a mano
+    # dejaron de usarse, se vacían para que no confundan a nadie que mire la base
+    con.execute("UPDATE products SET transfer_price = NULL, card_price = NULL WHERE transfer_price IS NOT NULL OR card_price IS NOT NULL")
+    con.execute("DELETE FROM settings WHERE key = 'card_surcharge_pct'")
 
 
 def _init_pin(con) -> None:

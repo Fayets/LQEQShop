@@ -67,7 +67,7 @@
       <div class="card-info">
         <p class="card-name">${esc(p.name)}</p>
         <p class="card-price">${p.off_pct ? `<s>${money(p.compare_price)}</s>` : ""}${money(p.price)}</p>
-        ${pct() || p.transfer_price ? `<p class="card-transfer">${money(p.transfer_price_final)} con Transferencia</p>` : ""}
+        ${pct() ? `<p class="card-transfer">${money(p.transfer_price_final)} con Transferencia</p>` : ""}
       </div></a>`;
   }
 
@@ -160,9 +160,8 @@
         <p class="crumbs"><a href="/" data-link>Inicio</a> . ${cat ? `<a href="/c/${esc(cat.slug)}" data-link>${esc(cat.name)}</a> . ` : ""}${esc(p.name)}</p>
         <h1>${esc(p.name)}</h1>
         <div class="price-row"><span class="price-now">${p.off_pct ? `<s>${money(p.compare_price)}</s>` : ""}${money(p.price)}${p.off_pct ? `<span class="price-off">${p.off_pct}% OFF</span>` : ""}</span>
-          ${n > 1 ? `<span class="cuotas">${n} cuotas sin interés de ${money(p.card_price_final / n)}</span>` : ""}</div>
-        ${pct() || p.transfer_price ? `<p class="transfer">${money(p.transfer_price_final)} con Transferencia</p>` : ""}
-        ${p.card_price_final !== p.price ? `<p class="card-line">${money(p.card_price_final)} con Tarjeta${n > 1 ? ` · ${n} cuotas sin interés` : ""}</p>` : ""}
+          ${n > 1 ? `<span class="cuotas">${n} cuotas sin interés de ${money(p.price / n)}</span>` : ""}</div>
+        ${pct() ? `<p class="transfer">${money(p.transfer_price_final)} con Transferencia o efectivo</p>` : ""}
         ${p.colors.length ? `<div class="opt"><div class="opt-label">Color<b id="colorName">${esc(color || "")}</b></div><div class="opts" id="colors">${p.colors.map(c => `<button class="chip${c.name === color ? " on" : ""}" data-v="${esc(c.name)}"><i style="background:${esc(c.hex)}"></i>${esc(c.name)}</button>`).join("")}</div></div>` : ""}
         ${p.sizes.length ? `<div class="opt"><div class="opt-label">Talle<b id="sizeName">${esc(size || "")}</b></div><div class="opts" id="sizes">${p.sizes.map(z => `<button class="chip${z.size === size ? " on" : ""}" data-v="${esc(z.size)}" ${z.stock > 0 ? "" : "disabled"}>${esc(z.size)}</button>`).join("")}</div></div>` : ""}
         <div class="buy">
@@ -253,9 +252,9 @@
   // ------------------------------------------------ carrito
   function openCart() { renderCart(); openDrawer($("#cart")); track("open_cart"); }
   function totals() {
-    let list = 0, transfer = 0, card = 0;
-    cart.forEach(i => { const p = byId(i.product_id); if (!p) return; list += p.price * i.qty; transfer += p.transfer_price_final * i.qty; card += p.card_price_final * i.qty; });
-    return { list, transfer, card };
+    let list = 0, transfer = 0;
+    cart.forEach(i => { const p = byId(i.product_id); if (!p) return; list += p.price * i.qty; transfer += p.transfer_price_final * i.qty; });
+    return { list, transfer };
   }
   function renderCart() {
     cart = cart.filter(lineOk);
@@ -269,8 +268,7 @@
         <div class="ci-right"><span>${money(p.price * i.qty)}</span><button class="ci-del" data-del="${k}">Borrar</button></div></div>`; }).join("")}</div>
       <div class="cart-foot">
         <div class="sum"><span>Subtotal</span><span>${money(t.list)}</span></div>
-        ${t.transfer < t.list ? `<div class="sum total"><span>Total con transferencia</span><span>${money(t.transfer)}</span></div>` : `<div class="sum total"><span>Total</span><span>${money(t.list)}</span></div>`}
-        ${t.card !== t.list ? `<div class="sum"><span>Con tarjeta</span><span>${money(t.card)}</span></div>` : ""}
+        ${t.transfer < t.list ? `<div class="sum total"><span>Con transferencia o efectivo</span><span>${money(t.transfer)}</span></div>` : `<div class="sum total"><span>Total</span><span>${money(t.list)}</span></div>`}
         <button class="btn-main" id="toCheckout">Iniciar compra</button>
         <button class="link-btn" data-close>Ver más productos</button>
       </div>`;
@@ -303,7 +301,7 @@
       <label>¿Cómo pagás?<div class="radios">
         <label class="radio"><input type="radio" name="payment" value="transferencia" checked>Transferencia<em>${money(t.transfer)}</em></label>
         <label class="radio"><input type="radio" name="payment" value="efectivo">Efectivo<em>${money(t.transfer)}</em></label>
-        <label class="radio"><input type="radio" name="payment" value="tarjeta">Tarjeta${+store.settings.installments > 1 ? ` · ${store.settings.installments} cuotas sin interés` : ""}<em>${money(t.card)}</em></label></div></label>
+        <label class="radio"><input type="radio" name="payment" value="tarjeta">Tarjeta${+store.settings.installments > 1 ? ` · ${store.settings.installments} cuotas sin interés` : ""}<em>${money(t.list)}</em></label></div></label>
       <label>¿Algo que quieras aclarar? <textarea name="note" rows="2" maxlength="500"></textarea></label>
       <p class="co-err" id="coErr" hidden></p>
       <button class="btn-main" id="coSend">Enviar pedido por WhatsApp</button>

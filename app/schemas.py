@@ -75,8 +75,6 @@ class ProductIn(BaseModel):
     category: str = Field(default="", max_length=60)
     price: float = Field(ge=0, le=99_999_999)
     compare_price: Optional[float] = Field(default=None, ge=0, le=99_999_999)
-    transfer_price: Optional[float] = Field(default=None, ge=0, le=99_999_999)
-    card_price: Optional[float] = Field(default=None, ge=0, le=99_999_999)
     featured: bool = False
     active: bool = True
     sizes: list[SizeIn] = Field(default=[], max_length=40)

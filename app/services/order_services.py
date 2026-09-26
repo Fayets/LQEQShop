@@ -82,7 +82,8 @@ class OrderServices:
                 if not color:
                     raise HTTPException(400, f"Elegí un color para {p['name']}")
             unit_list = float(p["price"])
-            unit = p["card_price_final"] if payment == "tarjeta" else p["transfer_price_final"]
+            # precio único; transferencia y efectivo tienen el descuento de Ajustes
+            unit = p["transfer_price_final"] if payment in ("transferencia", "efectivo") else unit_list
             out.append({"product_id": p["id"], "product_name": p["name"], "size": size, "color": color,
                         "qty": it.qty, "unit_price": unit, "list_price": unit_list})
             subtotal += unit_list * it.qty
