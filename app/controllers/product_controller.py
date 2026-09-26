@@ -43,7 +43,7 @@ def delete(pid: int):
 
 
 @router.post("/products/{pid}/images")
-async def add_images(pid: int, files: list[UploadFile] = File(...), mode: str = Form("cover")):
+async def add_images(pid: int, files: list[UploadFile] = File(...), mode: str = Form("auto")):
     return service.add_images(pid, [await read_upload(f) for f in files[:20]], mode)
 
 

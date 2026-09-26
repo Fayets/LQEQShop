@@ -132,7 +132,7 @@ class ProductServices:
 
     # ------------------------------------------------------------ fotos
     def add_images(self, pid: int, files: list[tuple[str, bytes]], mode: str) -> list[dict]:
-        mode = mode if mode in ("cover", "contain") else "cover"
+        mode = mode if mode in ("auto", "cover", "contain") else "auto"
         with get_db() as con:
             if not con.execute("SELECT 1 FROM products WHERE id = ?", (pid,)).fetchone():
                 raise HTTPException(404, "La prenda no existe")

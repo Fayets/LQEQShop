@@ -246,11 +246,10 @@
   };
 
   // fotos
-  const imgMode = () => ($$('input[name="imgmode"]').find(r => r.checked) || {}).value || "cover";
   function dropPending() { pending.forEach(f => URL.revokeObjectURL(f.preview)); pending = []; }
   async function uploadPending() {
     if (!editing || !pending.length) return 0;
-    const fd = new FormData(); pending.forEach(f => fd.append("files", f.file)); fd.append("mode", pending[0].mode);
+    const fd = new FormData(); pending.forEach(f => fd.append("files", f.file)); fd.append("mode", "auto");
     $("#uploadStatus").hidden = false; $("#uploadStatus").textContent = `Subiendo ${plural(pending.length, "foto", "fotos")}…`;
     const out = await api(`/api/admin/products/${editing.id}/images`, { method: "POST", body: fd });
     dropPending(); return out.length;
@@ -263,7 +262,8 @@
       d.innerHTML = `<img src="${editing ? im.thumb_url + "?v=" + Date.now() : im.preview}" alt="">
         ${i === 0 ? '<span class="first">Principal</span>' : '<button type="button" class="mk">Hacer principal</button>'}
         ${editing ? "" : '<span class="pend">se sube al guardar</span>'}
-        <div class="tb"><button type="button" data-mv="-1" aria-label="Antes">←</button><button type="button" class="del">borrar</button><button type="button" data-mv="1" aria-label="Después">→</button></div>`;
+        <div class="tb"><button type="button" data-mv="-1" aria-label="Antes">←</button><button type="button" class="del">borrar</button><button type="button" data-mv="1" aria-label="Después">→</button></div>
+        ${editing ? '<div class="fit"><button type="button" data-fit="contain">Entera</button><button type="button" data-fit="cover">Recortar</button></div>' : ""}`;
       const move = async (j) => {
         if (j < 0 || j >= list.length) return;
         const [x] = list.splice(i, 1); list.splice(j, 0, x);
@@ -271,6 +271,11 @@
         renderThumbs();
       };
       $$("[data-mv]", d).forEach(b => b.onclick = () => move(i + +b.dataset.mv));
+      $$("[data-fit]", d).forEach(b => b.onclick = async () => {
+        const fd = new FormData(); fd.append("mode", b.dataset.fit);
+        await api(`/api/admin/images/${im.id}/reprocess`, { method: "POST", body: fd });
+        toast(b.dataset.fit === "cover" ? "Foto recortada para llenar el marco" : "Foto entera, con fondo"); renderThumbs();
+      });
       const mk = $(".mk", d); if (mk) mk.onclick = () => move(0);
       $(".del", d).onclick = async () => {
         if (editing) { if (!confirm("¿Borrar esta foto?")) return; await api(`/api/admin/images/${im.id}`, { method: "DELETE" }); }
@@ -284,9 +289,9 @@
     files = [...(files || [])].filter(f => !f.type || f.type.startsWith("image/") || /\.hei[cf]$/i.test(f.name));
     if (!files.length) return;
     const st = $("#uploadStatus"); st.hidden = false;
-    if (!editing) { files.forEach(f => pending.push({ file: f, preview: URL.createObjectURL(f), mode: imgMode() })); st.textContent = `${plural(pending.length, "foto lista", "fotos listas")}: se suben al guardar.`; renderThumbs(); return; }
+    if (!editing) { files.forEach(f => pending.push({ file: f, preview: URL.createObjectURL(f) })); st.textContent = `${plural(pending.length, "foto lista", "fotos listas")}: se suben al guardar.`; renderThumbs(); return; }
     st.textContent = `Subiendo ${plural(files.length, "foto", "fotos")}…`;
-    const fd = new FormData(); files.forEach(f => fd.append("files", f)); fd.append("mode", imgMode());
+    const fd = new FormData(); files.forEach(f => fd.append("files", f)); fd.append("mode", "auto");
     try { const out = await api(`/api/admin/products/${editing.id}/images`, { method: "POST", body: fd }); editing.images.push(...out); renderThumbs(); st.textContent = "Listo"; }
     catch (ex) { st.textContent = ex.message; }
   }

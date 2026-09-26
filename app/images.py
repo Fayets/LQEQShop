@@ -14,7 +14,7 @@ import io
 import uuid
 from pathlib import Path
 
-from PIL import Image, ImageOps
+from PIL import Image, ImageFilter, ImageOps
 
 try:  # HEIC de iPhone
     import pillow_heif
@@ -46,13 +46,29 @@ def _open(data: bytes) -> Image.Image:
     return im.convert("RGB")
 
 
-def normalize(im: Image.Image, width: int, height: int, mode: str = "cover") -> Image.Image:
+AUTO_TOLERANCE = 0.12  # hasta 12% de diferencia con 3:4 se recorta; más que eso, entra entera
+
+
+def normalize(im: Image.Image, width: int, height: int, mode: str = "auto") -> Image.Image:
+    """Toda foto sale exactamente de width×height, venga como venga.
+
+    auto    -> si la foto ya es casi vertical 3:4 se ajusta al marco; si es cuadrada o
+               apaisada (lo típico de las fotos hechas con IA) entra entera sobre un fondo
+               hecho con la misma foto desenfocada, así no se corta la prenda
+    cover   -> llena el marco recortando al centro
+    contain -> entra entera sobre el fondo desenfocado
+    """
+    if mode == "auto":
+        target = width / height
+        mode = "cover" if abs(im.width / im.height - target) / target <= AUTO_TOLERANCE else "contain"
     if mode == "contain":
+        # fondo: la misma foto llenando el marco, muy desenfocada y un poco aclarada
+        bg = ImageOps.fit(im, (width // 4, height // 4), Image.BILINEAR)
+        bg = bg.filter(ImageFilter.GaussianBlur(12)).resize((width, height), Image.BILINEAR)
+        bg = Image.blend(bg, Image.new("RGB", (width, height), PAD_COLOR), 0.25)
         fitted = ImageOps.contain(im, (width, height), Image.LANCZOS)
-        canvas = Image.new("RGB", (width, height), PAD_COLOR)
-        canvas.paste(fitted, ((width - fitted.width) // 2, (height - fitted.height) // 2))
-        return canvas
-    # cover: llena el marco y recorta centrado
+        bg.paste(fitted, ((width - fitted.width) // 2, (height - fitted.height) // 2))
+        return bg
     return ImageOps.fit(im, (width, height), Image.LANCZOS, centering=(0.5, 0.45))
 
 
@@ -63,7 +79,7 @@ def process_upload(
     originals_dir: Path,
     width: int = 1200,
     height: int = 1600,
-    mode: str = "cover",
+    mode: str = "auto",
 ) -> dict:
     """Guarda original + normalizada + thumb. Devuelve nombres de archivo relativos."""
     ext = Path(original_name).suffix.lower() or ".jpg"
