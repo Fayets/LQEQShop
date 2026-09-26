@@ -341,6 +341,14 @@
     };
   }
 
+  // Celulares argentinos: +54 9 11 2345-6789 (AMBA) o +54 9 3804 21-1500 (característica de 4)
+  function prettyPhone(n) {
+    const m = n.match(/^549(\d{10})$/);
+    if (!m) return n ? "+" + n : "";
+    const r = m[1];
+    return r.startsWith("11") ? `+54 9 11 ${r.slice(2, 6)}-${r.slice(6)}` : `+54 9 ${r.slice(0, 4)} ${r.slice(4, 6)}-${r.slice(6)}`;
+  }
+
   // ------------------------------------------------ marco (header, menú, footer)
   function frame() {
     const s = store.settings;
@@ -361,7 +369,7 @@
     $("#socials").innerHTML = [[ig, I.ig, "Instagram"], [s.facebook && `https://facebook.com/${s.facebook}`, I.fb, "Facebook"], [s.tiktok && `https://tiktok.com/@${s.tiktok}`, I.tt, "TikTok"]]
       .filter(x => x[0]).map(([u, ic, l]) => `<a href="${esc(u)}" target="_blank" rel="noopener" aria-label="${l}">${ic}</a>`).join("");
     $("#footCats").innerHTML = `<li><a href="/" data-link>Inicio</a></li><li><a href="/productos" data-link>Shop now</a></li>` + store.categories.map(c => `<li><a href="/c/${esc(c.slug)}" data-link>${esc(c.name)}</a></li>`).join("");
-    const phone = s.whatsapp_number ? "+" + s.whatsapp_number.replace(/^(\d{2})(\d)(\d{2})(\d{4})(\d+)$/, "$1 $2 $3 $4 $5") : "";
+    const phone = prettyPhone(s.whatsapp_number || "");
     $("#footContact").innerHTML = [wa && `<li><a href="${wa}" target="_blank" rel="noopener">${esc(phone)}</a></li>`, s.email && `<li><a href="mailto:${esc(s.email)}">${esc(s.email)}</a></li>`, s.address && `<li>${esc(s.address)}</li>`].filter(Boolean).join("");
     $("#copy").textContent = `Copyright ${s.brand_name} ${s.brand_tagline || ""} - ${new Date().getFullYear()}. Todos los derechos reservados.`.replace("  ", " ");
     addEventListener("scroll", () => $("#header").classList.toggle("scrolled", scrollY > 10), { passive: true });
