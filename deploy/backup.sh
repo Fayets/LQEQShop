@@ -1,9 +1,9 @@
 #!/bin/bash
 # Respaldo diario de lo único que no se puede regenerar: la base y las fotos.
-# Instalar en cron:  0 4 * * * /home/deploy/apps/LQEQ/deploy/backup.sh >> /var/log/lqeq-backup.log 2>&1
+# Instalar en cron:  0 4 * * * /home/deploy/apps/LQEQShop/deploy/backup.sh >> /var/log/lqeq-backup.log 2>&1
 set -euo pipefail
 
-APP=${LQEQ_APP:-/home/deploy/apps/LQEQ}
+APP=${LQEQ_APP:-/home/deploy/apps/LQEQShop}
 DEST=${LQEQ_BACKUPS:-/srv/backups/lqeq}
 KEEP_DAYS=30
 STAMP=$(date +%F_%H%M)
