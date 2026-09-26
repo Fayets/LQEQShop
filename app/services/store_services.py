@@ -2,8 +2,9 @@
 from __future__ import annotations
 
 import html
+from pathlib import Path
 
-from ..config import STATIC_DIR
+from ..config import BRAND_MEDIA, STATIC_DIR
 from ..db import get_categories, get_db, get_settings
 from .product_services import ProductServices
 from .settings_services import SettingsServices
@@ -51,5 +52,18 @@ class StoreServices:
                     .replace("{{description}}", html.escape(description or f"Tienda online de {brand}. Hacé tu pedido y lo coordinamos por WhatsApp."))
                     .replace("{{image}}", html.escape(image)))
 
+    def favicon(self) -> tuple[Path, str]:
+        """El ícono del logo si la dueña subió uno; si no, el monograma por defecto."""
+        with get_db() as con:
+            logo = get_settings(con).get("logo")
+        if logo:
+            icon = BRAND_MEDIA / logo.replace("logo_", "icon_")
+            if icon.exists():
+                return icon, "image/png"
+        return STATIC_DIR / "img" / "favicon.svg", "image/svg+xml"
+
     def render_admin(self, version: str) -> str:
-        return (STATIC_DIR / "admin.html").read_text(encoding="utf-8").replace("{{v}}", version)
+        with get_db() as con:
+            brand = get_settings(con).get("brand_name") or "Mi tienda"
+        page = (STATIC_DIR / "admin.html").read_text(encoding="utf-8")
+        return page.replace("{{v}}", version).replace("{{title}}", html.escape(f"Panel · {brand}"))

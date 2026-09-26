@@ -83,3 +83,4 @@ class SlideServices:
             set_setting(con, "logo", name)
         if old:
             (BRAND_MEDIA / old).unlink(missing_ok=True)
+            (BRAND_MEDIA / old.replace("logo_", "icon_")).unlink(missing_ok=True)

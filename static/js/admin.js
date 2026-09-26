@@ -364,7 +364,8 @@
     cats = await api("/api/admin/categories"); renderCats();
     const subs = await api("/api/admin/subscribers"); $("#subsCount").textContent = subs.length ? `${plural(subs.length, "persona se anotó", "personas se anotaron")}.` : "Todavía no se anotó nadie.";
   }
-  function renderLogo() { $("#logoPrev").innerHTML = settings.logo_url ? `<img src="${settings.logo_url}" alt="Logo">` : "Sin logo: se ve el nombre escrito"; $("#rmLogo").hidden = !settings.logo_url; }
+  function renderLogo() {
+    const ic = document.querySelector('link[rel="icon"]'); if (ic) ic.href = "/favicon?t=" + Date.now(); $("#logoPrev").innerHTML = settings.logo_url ? `<img src="${settings.logo_url}" alt="Logo">` : "Sin logo: se ve el nombre escrito"; $("#rmLogo").hidden = !settings.logo_url; }
   $("#pickLogo").onclick = () => $("#logoFile").click();
   $("#logoFile").onchange = async (e) => { const f = e.target.files[0]; e.target.value = ""; if (!f) return; const fd = new FormData(); fd.append("file", f); try { const r = await api("/api/admin/logo", { method: "POST", body: fd }); settings.logo_url = r.logo_url; renderLogo(); toast("Logo actualizado"); } catch (ex) { toast(ex.message); } };
   $("#rmLogo").onclick = async () => { await api("/api/admin/logo", { method: "DELETE" }); settings.logo_url = ""; renderLogo(); toast("Logo quitado"); };
@@ -405,7 +406,7 @@
     if (me.must_change_pin) return showGate();
     $("#login").hidden = $("#pinGate").hidden = true; $("#app").hidden = false;
     settings = await api("/api/admin/settings").catch(() => ({}));
-    if (settings.brand_name) $("#sideBrand").innerHTML = `${esc(settings.brand_name)}<small>PANEL</small>`;
+    if (settings.brand_name) { $("#sideBrand").innerHTML = `${esc(settings.brand_name)}<small>PANEL</small>`; document.title = `Panel · ${settings.brand_name}`; }
     showTab("resumen");
   }
   start();

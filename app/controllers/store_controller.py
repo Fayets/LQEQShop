@@ -1,6 +1,6 @@
 """Tienda pública: catálogo y páginas HTML."""
 from fastapi import APIRouter, Response
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse
 
 from ..config import ASSET_VERSION
 from ..services.store_services import StoreServices
@@ -42,6 +42,13 @@ def search_page():
 def product_page(slug: str):
     meta = service.product_meta(slug)
     return _html(service.render_page(ASSET_VERSION, *meta) if meta else service.render_page(ASSET_VERSION))
+
+
+@router.get("/favicon")
+@router.get("/favicon.ico")
+def favicon():
+    path, media_type = service.favicon()
+    return FileResponse(path, media_type=media_type, headers={"Cache-Control": "no-cache"})
 
 
 @router.get("/admin")

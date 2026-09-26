@@ -136,4 +136,9 @@ def process_logo(data: bytes, original_name: str, out_dir: Path) -> str:
     im = ImageOps.contain(im, (900, 300), Image.LANCZOS)
     name = f"logo_{uuid.uuid4().hex[:8]}.png"
     im.save(out_dir / name, "PNG", optimize=True)
+    # ícono cuadrado para la pestaña del navegador: el logo entero centrado, sin recortar
+    icon = Image.new("RGBA", (256, 256), (0, 0, 0, 0))
+    fit = ImageOps.contain(im, (240, 240), Image.LANCZOS)
+    icon.paste(fit, ((256 - fit.width) // 2, (256 - fit.height) // 2), fit)
+    icon.save(out_dir / name.replace("logo_", "icon_"), "PNG", optimize=True)
     return name
