@@ -1,0 +1,12 @@
+services:
+  lqeq:
+    build: .
+    container_name: lqeq
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      # en el host, a la vista, para que backup.sh los tome sin entrar al contenedor
+      - ./data:/app/data
+      - ./media:/app/media
+    ports:
+      - "127.0.0.1:8030:8030"   # solo el proxy (nginx/Caddy) llega a este puerto

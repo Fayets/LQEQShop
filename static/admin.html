@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Mi tienda · Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/admin.css?v={{v}}">
+</head>
+<body>
+
+<div class="login" id="login" hidden>
+  <form class="login-card" id="loginForm">
+    <span class="brand">Mi tienda<small>PANEL</small></span>
+    <label>PIN de acceso<input type="password" id="pin" autocomplete="current-password" placeholder="••••••"></label>
+    <p class="err" id="loginErr" hidden></p>
+    <button class="btn btn-main" type="submit">Entrar</button>
+  </form>
+</div>
+
+<div class="login" id="pinGate" hidden>
+  <form class="login-card" id="pinGateForm">
+    <span class="brand">Mi tienda<small>PANEL</small></span>
+    <h3>Elegí tu PIN</h3>
+    <p class="muted">Todavía está el PIN provisorio. Elegí uno tuyo de 6 caracteres o más: es la llave del panel.</p>
+    <label>PIN nuevo<input type="password" id="gateNew" autocomplete="new-password"></label>
+    <label>Repetilo<input type="password" id="gateRepeat" autocomplete="new-password"></label>
+    <p class="err" id="gateErr" hidden></p>
+    <button class="btn btn-main" type="submit">Guardar y entrar</button>
+  </form>
+</div>
+
+<div class="app" id="app" hidden>
+  <aside class="side">
+    <span class="brand" id="sideBrand">Mi tienda<small>PANEL</small></span>
+    <nav>
+      <button data-tab="resumen" class="on">Resumen</button>
+      <button data-tab="visitas">Visitas y carritos</button>
+      <button data-tab="pedidos">Pedidos <span class="pill" id="pendingPill" hidden>0</span></button>
+      <button data-tab="productos">Productos</button>
+      <button data-tab="portada">Portada</button>
+      <button data-tab="ajustes">Ajustes</button>
+    </nav>
+    <a class="side-link" href="/" target="_blank" rel="noopener">Ver la tienda ↗</a>
+    <button class="side-link" id="logout">Salir</button>
+  </aside>
+
+  <nav class="tabbar">
+    <button data-tab="resumen" class="on"><svg viewBox="0 0 24 24"><path d="M4 19V10M10 19V5M16 19v-6M21 19H3"/></svg><span>Resumen</span></button>
+    <button data-tab="visitas"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6"/></svg><span>Visitas</span></button>
+    <button data-tab="pedidos"><svg viewBox="0 0 24 24"><path d="M6 7h12l1 13H5L6 7z"/><path d="M9 10V6a3 3 0 0 1 6 0v4"/></svg><span>Pedidos</span><i class="dot" id="pendingDot" hidden></i></button>
+    <button data-tab="productos"><svg viewBox="0 0 24 24"><path d="M8 3l-4 3 2 4 2-1v12h8V9l2 1 2-4-4-3c-1 2-2.5 3-4 3S9 5 8 3z"/></svg><span>Productos</span></button>
+    <button data-tab="portada"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6"/></svg><span>Portada</span></button>
+    <button data-tab="ajustes"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg><span>Ajustes</span></button>
+  </nav>
+
+  <main class="content">
+
+    <!-- RESUMEN -->
+    <section data-panel="resumen">
+      <div class="head"><h1>Resumen</h1>
+        <div class="period"><div class="seg" id="daysSeg"><button data-d="1">Hoy</button><button data-d="7">7 días</button><button data-d="30" class="on">30 días</button><button data-d="90">90 días</button><button data-d="month">Por mes</button></div><select id="monthSel" hidden></select></div>
+      </div>
+      <p class="demo-note" id="demoNote" hidden>Estás viendo <b>datos de prueba</b>. Cuando la tienda salga al aire, borralos en <b>Ajustes → Empezar a contar de cero</b>.</p>
+      <div class="kpis" id="kpis"></div>
+      <div class="grid2">
+        <div class="card"><h3>El camino de las visitas</h3><p class="muted small">Cuántas personas llegaron a cada paso</p><div class="funnel" id="funnel"></div></div>
+        <div class="card"><h3>De dónde vienen</h3><p class="muted small" id="devices"></p><div class="hbars" id="sources"></div></div>
+      </div>
+      <div class="card"><div class="card-head"><div><h3>Día por día</h3></div><div class="legend"><span><i class="l1"></i>Visitas</span><span><i class="l2"></i>Armaron carrito</span><span><i class="l3"></i>Pedidos</span></div></div><div class="chart" id="chart"></div><div class="chart-axis" id="chartAxis"></div></div>
+      <div class="grid2">
+        <div class="card"><div class="card-head"><h3>Carritos que quedaron sin pedido</h3><button class="link" id="seeAbandoned">Ver todos</button></div><div id="abandonedMini"></div></div>
+        <div class="card"><h3>Stock por agotarse</h3><ul class="low" id="lowStock"></ul></div>
+      </div>
+      <div class="card"><h3>Qué prendas miran y piden</h3><div class="tbl-wrap"><table class="tbl" id="perProduct"><thead><tr><th>Prenda</th><th>La miraron</th><th>Al carrito</th><th>Pedidas</th></tr></thead><tbody></tbody></table></div></div>
+    </section>
+
+    <!-- VISITAS -->
+    <section data-panel="visitas" hidden>
+      <div class="head"><h1>Visitas y carritos</h1>
+        <div class="period"><div class="seg" id="visSeg"><button data-f="all" class="on">Todas</button><button data-f="cart">Armaron carrito</button><button data-f="abandoned">Lo dejaron</button><button data-f="order">Pidieron</button></div>
+        <select id="visDays"><option value="1">Hoy</option><option value="7">7 días</option><option value="30" selected>30 días</option><option value="90">90 días</option></select></div>
+      </div>
+      <p class="muted">Cada fila es una persona (un celular o compu). Tocala para ver todo lo que hizo en la tienda.</p>
+      <div class="vlist" id="vlist"></div>
+    </section>
+
+    <!-- PEDIDOS -->
+    <section data-panel="pedidos" hidden>
+      <div class="head"><h1>Pedidos</h1>
+        <div class="seg" id="statusSeg"><button data-s="" class="on">Todos</button><button data-s="pendiente">Pendientes</button><button data-s="confirmado">Confirmados</button><button data-s="entregado">Entregados</button><button data-s="cancelado">Cancelados</button></div>
+      </div>
+      <p class="muted">Un pedido nuevo <b>no descuenta stock</b>: es alguien que quiere comprar. El stock se descuenta cuando lo pasás a <b>confirmado</b>, y vuelve si lo cancelás.</p>
+      <div class="olist" id="olist"></div>
+    </section>
+
+    <!-- PRODUCTOS -->
+    <section data-panel="productos" hidden>
+      <div class="head"><h1>Productos</h1><button class="btn btn-main" id="newProduct">+ Nueva prenda</button></div>
+      <div class="ptools"><input id="pSearch" type="search" placeholder="Buscar prenda…"><select id="pCat"><option value="">Todas las categorías</option></select></div>
+      <div class="plist" id="plist"></div>
+    </section>
+
+    <!-- PORTADA -->
+    <section data-panel="portada" hidden>
+      <div class="head"><h1>Portada</h1><a class="btn btn-ghost" href="/" target="_blank" rel="noopener">Ver cómo queda ↗</a></div>
+
+      <div class="card">
+        <div class="card-head"><div><h3>Fotos grandes de arriba</h3><p class="muted small">Van pasando solas. Conviene una foto apaisada; en el celular se recorta vertical al centro.</p></div>
+          <button class="btn btn-main" id="addHero">+ Agregar foto</button></div>
+        <input type="file" id="heroFile" accept="image/*,.heic,.heif" hidden>
+        <div class="slides" id="heroList"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><div><h3>Los dos cuadros de categorías</h3><p class="muted small">Aparecen entre los dos carruseles. Foto vertical.</p></div>
+          <button class="btn btn-main" id="addBanner">+ Agregar cuadro</button></div>
+        <input type="file" id="bannerFile" accept="image/*,.heic,.heif" hidden>
+        <div class="slides banners" id="bannerList"></div>
+      </div>
+
+      <form class="card form" id="homeTexts">
+        <h3>Textos</h3>
+        <label>Barra de arriba <small>separá cada mensaje con una rayita |</small><input name="banner_text"></label>
+        <div class="row2">
+          <label>Título del primer carrusel <small>muestra las prendas marcadas como “destacada”</small><input name="section_featured_title"></label>
+          <label>Título del segundo carrusel <small>muestra las últimas que cargaste</small><input name="section_new_title"></label>
+        </div>
+        <div class="row2">
+          <label>En la ficha: “misma categoría”<input name="related_title"></label>
+          <label>En la ficha: “otras categorías”<input name="match_title"></label>
+        </div>
+        <label>Texto del newsletter (pie de página)<input name="newsletter_title"></label>
+        <label class="chk"><input type="checkbox" name="newsletter_popup"> Mostrar la ventanita del newsletter a quien entra por primera vez</label>
+        <button class="btn btn-main" type="submit">Guardar textos</button>
+      </form>
+    </section>
+
+    <!-- AJUSTES -->
+    <section data-panel="ajustes" hidden>
+      <div class="head"><h1>Ajustes</h1></div>
+
+      <form class="card form" id="brandForm">
+        <h3>Marca</h3>
+        <div class="row2">
+          <label>Nombre<input name="brand_name"></label>
+          <label>Bajada <small>la línea chiquita debajo del nombre</small><input name="brand_tagline"></label>
+        </div>
+        <div class="logo-ed">
+          <div class="logo-prev" id="logoPrev"></div>
+          <div><p class="muted small">Si subís un logo (mejor PNG con fondo transparente), reemplaza al nombre escrito en la tienda.</p>
+            <input type="file" id="logoFile" accept="image/*" hidden>
+            <button type="button" class="link" id="pickLogo">Subir logo</button> · <button type="button" class="link danger" id="rmLogo">Quitar</button></div>
+        </div>
+        <h3 class="mt">Colores</h3>
+        <div class="colors" id="colors"></div>
+        <button type="button" class="link" id="resetColors">Volver a los colores originales</button>
+        <button class="btn btn-main" type="submit">Guardar</button>
+      </form>
+
+      <form class="card form" id="salesForm">
+        <h3>Ventas y contacto</h3>
+        <div class="row2">
+          <label>WhatsApp donde llegan los pedidos <small>con 549 y sin espacios</small><input name="whatsapp_number" inputmode="numeric" placeholder="5491123456789"></label>
+          <label>Saludo con el que empieza el mensaje<input name="whatsapp_greeting"></label>
+        </div>
+        <div class="row2">
+          <label>Descuento pagando con transferencia (%)<input name="transfer_discount_pct" type="number" min="0" max="90"></label>
+          <label>Cuotas sin interés <small>0 para no mostrar</small><input name="installments" type="number" min="0" max="24"></label>
+        </div>
+        <label>Medios de pago <small>se ve en la ficha de cada prenda</small><textarea name="info_payment" rows="2"></textarea></label>
+        <label>Medios de envío<textarea name="info_shipping" rows="2"></textarea></label>
+        <label>Nuestro local / retiro<textarea name="info_store" rows="2"></textarea></label>
+        <div class="row2"><label>Dirección<input name="address"></label><label>Email<input name="email" type="email"></label></div>
+        <div class="row3"><label>Instagram<input name="instagram" placeholder="usuario"></label><label>Facebook<input name="facebook" placeholder="usuario"></label><label>TikTok<input name="tiktok" placeholder="usuario"></label></div>
+        <button class="btn btn-main" type="submit">Guardar</button>
+      </form>
+
+      <form class="card form" id="catsForm">
+        <h3>Categorías</h3>
+        <p class="muted">Son las del menú de la tienda. El orden de acá es el que se ve. Una categoría sin prendas no aparece en la tienda.</p>
+        <div id="catRows"></div>
+        <button type="button" class="link" id="addCat">+ agregar categoría</button>
+        <p class="err" id="catsErr" hidden></p>
+        <button class="btn btn-main" type="submit">Guardar categorías</button>
+      </form>
+
+      <div class="card">
+        <h3>Suscriptoras del newsletter</h3>
+        <p class="muted" id="subsCount"></p>
+        <a class="btn btn-ghost" href="/api/admin/subscribers.csv">Descargar lista (Excel)</a>
+      </div>
+
+      <div class="card">
+        <h3>Empezar a contar de cero</h3>
+        <p class="muted">Borra las visitas, los recorridos y los carritos sin pedido (y los <b>datos de prueba</b>). Usalo cuando la tienda salga al aire para que las pruebas no ensucien los números.</p>
+        <p class="muted small">No toca pedidos reales, stock, prendas ni suscriptoras.</p>
+        <button class="btn btn-danger" type="button" id="resetMetrics">Borrar métricas</button>
+      </div>
+
+      <form class="card form" id="pinForm">
+        <h3>PIN de acceso</h3>
+        <p class="muted">Cambiarlo cierra la sesión en los otros dispositivos.</p>
+        <div class="row2"><label>PIN actual<input name="current_pin" type="password" autocomplete="current-password"></label>
+        <label>PIN nuevo <small>mínimo 6</small><input name="new_pin" type="password" autocomplete="new-password"></label></div>
+        <p class="err" id="pinErr" hidden></p>
+        <button class="btn btn-main" type="submit">Cambiar PIN</button>
+      </form>
+    </section>
+  </main>
+</div>
+
+<!-- EDITOR DE PRENDA -->
+<div class="modal-backdrop" id="backdrop" hidden></div>
+<div class="modal" id="editor" hidden>
+  <div class="modal-head"><h2 id="editorTitle">Nueva prenda</h2><button class="icon-btn" data-close-modal aria-label="Cerrar">×</button></div>
+  <form id="editorForm" class="editor">
+    <div class="ecol">
+      <label>Nombre<input name="name" required maxlength="120" placeholder="Vestido Aurora"></label>
+      <label>Categoría<select name="category" id="catSelect"></select></label>
+      <div class="row3">
+        <label>Precio<input name="price" type="number" min="0" step="1" required inputmode="numeric"></label>
+        <label>Precio antes <small>tachado, opcional</small><input name="compare_price" type="number" min="0" step="1" inputmode="numeric"></label>
+        <label>Con transferencia <small>vacío = automático</small><input name="transfer_price" type="number" min="0" step="1" placeholder="auto" inputmode="numeric"></label>
+      </div>
+      <label>Descripción <small>tela, medidas, cómo calza…</small><textarea name="description" rows="5"></textarea></label>
+      <label class="chk"><input type="checkbox" name="active" checked> Visible en la tienda</label>
+      <label class="chk"><input type="checkbox" name="featured"> Destacada (sale en el primer carrusel de la portada)</label>
+      <div class="sub-ed">
+        <div class="lbl">Talles y stock <button type="button" class="link" id="addSize">+ talle</button></div>
+        <div id="sizeRows"></div>
+        <p class="muted small">Sin talles, la prenda se vende sin controlar stock.</p>
+      </div>
+      <div class="sub-ed">
+        <div class="lbl">Colores <button type="button" class="link" id="addColor">+ color</button></div>
+        <div id="colorRows"></div>
+      </div>
+    </div>
+    <div class="ecol">
+      <div class="lbl">Fotos</div>
+      <div class="drop" id="drop">
+        <input type="file" id="fileInput" multiple accept="image/*,.heic,.heif" hidden>
+        <p><b>Arrastrá fotos acá</b> o <button type="button" class="link" id="pickFiles">elegilas del celu/compu</button></p>
+        <p class="muted small">Cualquier foto sirve (también las del iPhone). Quedan todas del mismo tamaño.</p>
+        <div class="mode"><label><input type="radio" name="imgmode" value="cover" checked> Recortar al centro</label><label><input type="radio" name="imgmode" value="contain"> Mostrar completa</label></div>
+      </div>
+      <p class="muted small" id="uploadStatus" hidden></p>
+      <div class="thumbs" id="thumbs"></div>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn btn-danger" id="deleteProduct" hidden>Eliminar</button>
+      <button type="button" class="btn btn-ghost" id="dupProduct" hidden>Duplicar</button>
+      <span class="spacer"></span>
+      <p class="err" id="editorErr" hidden></p>
+      <button type="submit" class="btn btn-main" id="saveProduct">Guardar</button>
+    </div>
+  </form>
+</div>
+
+<!-- RECORRIDO DE UNA VISITA -->
+<div class="modal narrow" id="timeline" hidden>
+  <div class="modal-head"><h2>Qué hizo en la tienda</h2><button class="icon-btn" data-close-modal aria-label="Cerrar">×</button></div>
+  <div class="tl" id="tlBody"></div>
+</div>
+
+<datalist id="links"></datalist>
+<div class="toast" id="toast" hidden></div>
+<script src="/static/js/admin.js?v={{v}}"></script>
+</body>
+</html>
