@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS products (
   price REAL NOT NULL DEFAULT 0,
   compare_price REAL,              -- precio "antes", tachado. Vacío = sin oferta
   transfer_price REAL,             -- vacío = se aplica el % de descuento de Ajustes
+  card_price REAL,                 -- vacío = se aplica el % de recargo por tarjeta de Ajustes
   featured INTEGER NOT NULL DEFAULT 0,  -- aparece en el primer carrusel de la portada
   active INTEGER NOT NULL DEFAULT 1,
   sort_order INTEGER NOT NULL DEFAULT 0,
@@ -179,6 +180,7 @@ DEFAULT_SETTINGS = {
     "whatsapp_greeting": "¡Hola! Quiero hacer este pedido:",
     "transfer_discount_pct": "10",
     "installments": "3",
+    "card_surcharge_pct": "0",
     "banner_text": "🤍 ENVÍOS A TODO EL PAÍS 🤍 | 🤍 10% OFF ABONANDO CON TRANSFERENCIA 🤍 | 🤍 3 CUOTAS SIN INTERÉS 🤍",
     "section_featured_title": "PREVIEW PRIMAVERA",
     "section_new_title": "NEW IN",
@@ -221,10 +223,18 @@ def init_db() -> None:
         con.executescript(SCHEMA)
         for k, v in DEFAULT_SETTINGS.items():
             con.execute("INSERT OR IGNORE INTO settings(key, value) VALUES (?, ?)", (k, v))
+        _migrate(con)
         _init_pin(con)
         con.execute("DELETE FROM sessions WHERE expires_at < datetime('now','localtime')")
         con.execute("DELETE FROM login_attempts WHERE created_at < datetime('now','localtime','-1 day')")
     con.close()
+
+
+def _migrate(con) -> None:
+    """Columnas agregadas después de la primera versión (no hay vuelta atrás)."""
+    cols = {r["name"] for r in con.execute("PRAGMA table_info(products)")}
+    if "card_price" not in cols:
+        con.execute("ALTER TABLE products ADD COLUMN card_price REAL")
 
 
 def _init_pin(con) -> None:

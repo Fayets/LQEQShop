@@ -7,7 +7,7 @@ from fastapi import HTTPException
 
 from ..db import get_db, get_settings, set_setting
 
-PUBLIC_KEYS = ["brand_name", "brand_tagline", "whatsapp_number", "transfer_discount_pct", "installments", "banner_text",
+PUBLIC_KEYS = ["brand_name", "brand_tagline", "whatsapp_number", "transfer_discount_pct", "card_surcharge_pct", "installments", "banner_text",
                "section_featured_title", "section_new_title", "related_title", "match_title", "newsletter_title",
                "newsletter_popup", "info_payment", "info_shipping", "info_store", "address", "instagram", "facebook",
                "tiktok", "email"]

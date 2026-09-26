@@ -189,7 +189,7 @@
     const list = products.filter(p => (!c || p.category === c) && (!q || p.name.toLowerCase().includes(q)));
     $("#plist").innerHTML = list.length ? list.map(p => `<div class="prow" data-id="${p.id}">
       ${p.images[0] ? `<img src="${p.images[0].thumb_url}" alt="" loading="lazy">` : `<div class="noimg"></div>`}
-      <div><h4>${esc(p.name)}</h4><p>${esc(p.category || "Sin categoría")} · ${money(p.price)}${p.compare_price > p.price ? ` <s>${money(p.compare_price)}</s>` : ""} · ${plural(p.images.length, "foto", "fotos")}</p></div>
+      <div><h4>${esc(p.name)}</h4><p>${esc(p.category || "Sin categoría")} · ${money(p.price)}${p.compare_price > p.price ? ` <s>${money(p.compare_price)}</s>` : ""}${p.card_price_final !== p.price ? ` · tarjeta ${money(p.card_price_final)}` : ""} · ${plural(p.images.length, "foto", "fotos")}</p></div>
       <span class="stock ${p.sold_out ? "zero" : ""}">${p.sizes.length ? (p.sold_out ? "Sin stock" : p.sizes.map(s => `${esc(s.size)}: ${s.stock}`).join(" · ")) : "Sin control de stock"}</span>
       <span class="badges">${p.featured ? '<span class="badge star">Destacada</span>' : ""}<span class="badge ${p.active ? "on" : ""}">${p.active ? "Visible" : "Oculta"}</span></span></div>`).join("")
       : `<div class="empty">${products.length ? "Ninguna prenda coincide." : "Todavía no hay prendas. Creá la primera con + Nueva prenda."}</div>`;
@@ -220,7 +220,8 @@
     const names = cats.map(c => c.name); if (p && p.category && !names.includes(p.category)) names.push(p.category);
     f.category.innerHTML = `<option value="">Sin categoría</option>` + names.map(n => `<option ${p && n === p.category ? "selected" : ""}>${esc(n)}</option>`).join("");
     if (!p && cats[0]) f.category.value = cats[0].name;
-    f.price.value = p ? p.price : ""; f.compare_price.value = p && p.compare_price ? p.compare_price : ""; f.transfer_price.value = p && p.transfer_price ? p.transfer_price : "";
+    f.price.value = p ? p.price : ""; f.compare_price.value = p && p.compare_price ? p.compare_price : ""; f.transfer_price.value = p && p.transfer_price ? p.transfer_price : ""; f.card_price.value = p && p.card_price ? p.card_price : "";
+    f.card_price.placeholder = +settings.card_surcharge_pct ? `auto (+${settings.card_surcharge_pct}%)` : "auto (= precio)";
     f.transfer_price.placeholder = settings.transfer_discount_pct ? `auto (-${settings.transfer_discount_pct}%)` : "auto";
     f.description.value = p ? p.description : ""; f.active.checked = p ? !!p.active : true; f.featured.checked = p ? !!p.featured : false;
     $("#sizeRows").innerHTML = ""; (p ? p.sizes : [{ size: "S", stock: 1 }, { size: "M", stock: 1 }, { size: "L", stock: 1 }]).forEach(s => $("#sizeRows").appendChild(sizeRow(s.size, s.stock)));
@@ -231,7 +232,7 @@
   function collect() {
     const f = $("#editorForm");
     return { name: f.name.value.trim(), category: f.category.value, price: +f.price.value || 0, compare_price: f.compare_price.value ? +f.compare_price.value : null,
-      transfer_price: f.transfer_price.value ? +f.transfer_price.value : null, description: f.description.value, active: f.active.checked, featured: f.featured.checked,
+      transfer_price: f.transfer_price.value ? +f.transfer_price.value : null, card_price: f.card_price.value ? +f.card_price.value : null, description: f.description.value, active: f.active.checked, featured: f.featured.checked,
       sizes: $$("#sizeRows .srow").map(r => ({ size: r.children[0].value.trim(), stock: Math.max(0, +r.children[1].value || 0) })).filter(s => s.size),
       colors: $$("#colorRows .crow").map(r => ({ name: r.children[0].value.trim(), hex: r.children[1].value })).filter(c => c.name) };
   }

@@ -167,9 +167,10 @@
           <label>WhatsApp donde llegan los pedidos <small>con 549 y sin espacios</small><input name="whatsapp_number" inputmode="numeric" placeholder="5491123456789"></label>
           <label>Saludo con el que empieza el mensaje<input name="whatsapp_greeting"></label>
         </div>
-        <div class="row2">
-          <label>Descuento pagando con transferencia (%)<input name="transfer_discount_pct" type="number" min="0" max="90"></label>
-          <label>Cuotas sin interés <small>0 para no mostrar</small><input name="installments" type="number" min="0" max="24"></label>
+        <div class="row3">
+          <label>Descuento con transferencia (%)<input name="transfer_discount_pct" type="number" min="0" max="90"></label>
+          <label>Recargo con tarjeta (%) <small>se suma al precio</small><input name="card_surcharge_pct" type="number" min="0" max="200" step="0.5"></label>
+          <label>Cuotas sin interés <small>0 = no mostrar</small><input name="installments" type="number" min="0" max="24"></label>
         </div>
         <label>Medios de pago <small>se ve en la ficha de cada prenda</small><textarea name="info_payment" rows="2"></textarea></label>
         <label>Medios de envío<textarea name="info_shipping" rows="2"></textarea></label>
@@ -221,10 +222,13 @@
     <div class="ecol">
       <label>Nombre<input name="name" required maxlength="120" placeholder="Vestido Aurora"></label>
       <label>Categoría<select name="category" id="catSelect"></select></label>
-      <div class="row3">
+      <div class="row2">
         <label>Precio<input name="price" type="number" min="0" step="1" required inputmode="numeric"></label>
         <label>Precio antes <small>tachado, opcional</small><input name="compare_price" type="number" min="0" step="1" inputmode="numeric"></label>
+      </div>
+      <div class="row2">
         <label>Con transferencia <small>vacío = automático</small><input name="transfer_price" type="number" min="0" step="1" placeholder="auto" inputmode="numeric"></label>
+        <label>Con tarjeta <small>vacío = automático</small><input name="card_price" type="number" min="0" step="1" placeholder="auto" inputmode="numeric"></label>
       </div>
       <label>Descripción <small>tela, medidas, cómo calza…</small><textarea name="description" rows="5"></textarea></label>
       <label class="chk"><input type="checkbox" name="active" checked> Visible en la tienda</label>
