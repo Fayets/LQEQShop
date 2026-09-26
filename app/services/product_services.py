@@ -7,9 +7,12 @@ from fastapi import HTTPException
 
 from .. import images as imgproc
 from ..config import ORIGINALS_DIR, PRODUCT_IMG, PRODUCTS_MEDIA
-from ..db import get_categories, get_db, get_settings, rows
+from ..db import get_db, get_settings, rows
 from ..schemas import ColorIn, ProductIn, SizeIn
 from ..utils import slugify
+from .category_services import CategoryServices
+
+categories = CategoryServices()
 
 
 def transfer_price_for(p: dict, settings: dict) -> float:
@@ -78,7 +81,7 @@ class ProductServices:
     # ------------------------------------------------------------ escritura
     def create(self, body: ProductIn) -> dict:
         with get_db() as con:
-            category = self._check_category(con, body.category)
+            category = categories.ensure(con, body.category)
             # las nuevas van primero: aparecen arriba en el panel y en NEW IN
             con.execute("UPDATE products SET sort_order = sort_order + 1")
             cur = con.execute(
@@ -97,7 +100,7 @@ class ProductServices:
             old = con.execute("SELECT name, slug FROM products WHERE id = ?", (pid,)).fetchone()
             if not old:
                 raise HTTPException(404, "La prenda no existe")
-            category = self._check_category(con, body.category)
+            category = categories.ensure(con, body.category)
             slug = old["slug"] if old["name"] == body.name.strip() else self._unique_slug(con, body.name, pid)
             con.execute(
                 "UPDATE products SET slug=?, name=?, description=?, category=?, price=?, compare_price=?, transfer_price=?, card_price=?, featured=?, "
@@ -182,12 +185,6 @@ class ProductServices:
         imgproc.reprocess(ORIGINALS_DIR / row["original"], PRODUCTS_MEDIA / str(row["product_id"]), *PRODUCT_IMG, mode, row["filename"], row["thumb"])
 
     # ------------------------------------------------------------ internos
-    def _check_category(self, con, category: str) -> str:
-        category = " ".join(category.split())
-        if category and category not in {c["name"] for c in get_categories(con)}:
-            raise HTTPException(400, f"La categoría «{category}» no existe. Creala primero en Ajustes → Categorías.")
-        return category
-
     def _unique_slug(self, con, name: str, pid: Optional[int] = None) -> str:
         base = slugify(name)
         slug, i = base, 2

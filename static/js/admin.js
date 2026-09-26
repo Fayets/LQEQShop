@@ -181,6 +181,9 @@
   function row(cls, html) { const d = document.createElement("div"); d.className = cls; d.innerHTML = html; $("button.rm", d).onclick = () => d.remove(); return d; }
   const sizeRow = (size = "", stock = 1) => row("srow", `<input placeholder="Talle (S, M, 38, Único…)" value="${esc(size)}" maxlength="20"><input type="number" min="0" value="${stock}" aria-label="Stock" inputmode="numeric"><button type="button" class="rm" aria-label="Quitar">×</button>`);
   const colorRow = (name = "", hex = "#d9c9b6") => row("srow crow", `<input placeholder="Nombre del color" value="${esc(name)}" maxlength="40"><input type="color" value="${esc(hex)}" aria-label="Tono"><button type="button" class="rm" aria-label="Quitar">×</button>`);
+  // categoría nueva sin salir del editor: se crea al guardar la prenda
+  $("#catSelect").onchange = () => { const nueva = $("#catSelect").value === "__new"; $("#newCatBox").hidden = !nueva; if (nueva) $("#newCat").focus(); };
+  $("#cancelNewCat").onclick = () => { $("#catSelect").value = ""; $("#newCatBox").hidden = true; $("#newCat").value = ""; };
   $("#addSize").onclick = () => $("#sizeRows").appendChild(sizeRow());
   $("#addColor").onclick = () => $("#colorRows").appendChild(colorRow());
 
@@ -199,8 +202,10 @@
     $("#editorTitle").textContent = p ? p.name : "Nueva prenda";
     f.name.value = p ? p.name : "";
     const names = cats.map(c => c.name); if (p && p.category && !names.includes(p.category)) names.push(p.category);
-    f.category.innerHTML = `<option value="">Sin categoría</option>` + names.map(n => `<option ${p && n === p.category ? "selected" : ""}>${esc(n)}</option>`).join("");
+    f.category.innerHTML = `<option value="">Sin categoría</option>` + names.map(n => `<option ${p && n === p.category ? "selected" : ""}>${esc(n)}</option>`).join("") +
+      `<option value="__new">+ Nueva categoría…</option>`;
     if (!p && cats[0]) f.category.value = cats[0].name;
+    $("#newCatBox").hidden = true; $("#newCat").value = "";
     f.price.value = p ? p.price : ""; f.compare_price.value = p && p.compare_price ? p.compare_price : ""; f.transfer_price.value = p && p.transfer_price ? p.transfer_price : ""; f.card_price.value = p && p.card_price ? p.card_price : "";
     f.card_price.placeholder = +settings.card_surcharge_pct ? `auto (+${settings.card_surcharge_pct}%)` : "auto (= precio)";
     f.transfer_price.placeholder = settings.transfer_discount_pct ? `auto (-${settings.transfer_discount_pct}%)` : "auto";
@@ -212,17 +217,20 @@
   }
   function collect() {
     const f = $("#editorForm");
-    return { name: f.name.value.trim(), category: f.category.value, price: +f.price.value || 0, compare_price: f.compare_price.value ? +f.compare_price.value : null,
+    return { name: f.name.value.trim(), category: f.category.value === "__new" ? $("#newCat").value.trim() : f.category.value, price: +f.price.value || 0, compare_price: f.compare_price.value ? +f.compare_price.value : null,
       transfer_price: f.transfer_price.value ? +f.transfer_price.value : null, card_price: f.card_price.value ? +f.card_price.value : null, description: f.description.value, active: f.active.checked, featured: f.featured.checked,
       sizes: $$("#sizeRows .srow").map(r => ({ size: r.children[0].value.trim(), stock: Math.max(0, +r.children[1].value || 0) })).filter(s => s.size),
       colors: $$("#colorRows .crow").map(r => ({ name: r.children[0].value.trim(), hex: r.children[1].value })).filter(c => c.name) };
   }
   $("#editorForm").onsubmit = async (e) => {
-    e.preventDefault(); $("#editorErr").hidden = true; const btn = $("#saveProduct"); btn.disabled = true;
+    e.preventDefault(); $("#editorErr").hidden = true;
+    if ($("#catSelect").value === "__new" && !$("#newCat").value.trim()) { $("#editorErr").textContent = "Escribí el nombre de la categoría nueva."; $("#editorErr").hidden = false; $("#newCat").focus(); return; }
+    const btn = $("#saveProduct"); btn.disabled = true;
     try {
       const body = JSON.stringify(collect()), isNew = !editing;
       editing = isNew ? await api("/api/admin/products", { method: "POST", body }) : await api(`/api/admin/products/${editing.id}`, { method: "PUT", body });
       const n = await uploadPending();
+      cats = await api("/api/admin/categories").catch(() => cats);
       toast(isNew ? `Prenda creada${n ? ` con ${plural(n, "foto", "fotos")}` : ""}` : "Cambios guardados");
       closeModals();
     } catch (ex) { $("#editorErr").textContent = ex.message; $("#editorErr").hidden = false; }
