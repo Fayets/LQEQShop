@@ -1,3 +1,5 @@
+# Igual que LopianaClothes: la tienda entra a la MISMA red que el nginx de Coquetines,
+# que la resuelve por nombre (proxy_pass http://lqeq:8030). No publica puertos al host.
 services:
   lqeq:
     build: .
@@ -5,8 +7,15 @@ services:
     restart: unless-stopped
     env_file: .env
     volumes:
-      # en el host, a la vista, para que backup.sh los tome sin entrar al contenedor
+      # bind mounts: pedidos y fotos quedan en el host y sobreviven a cualquier rebuild
       - ./data:/app/data
       - ./media:/app/media
-    ports:
-      - "127.0.0.1:8030:8030"   # solo el proxy (nginx/Caddy) llega a este puerto
+    networks:
+      - proxy
+    expose:
+      - "8030"
+
+networks:
+  proxy:
+    name: coquetines_default
+    external: true

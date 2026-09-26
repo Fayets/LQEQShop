@@ -66,8 +66,14 @@ BANNERS = [("p04", "VESTIDOS", "COMPRAR AHORA", "/c/vestidos"),
 
 
 def seed_catalog() -> None:
+    """Corre una sola vez en la vida de la base: si la dueña borra una prenda de muestra,
+    reiniciar el contenedor no tiene que volver a crearla."""
     init_db()
     with get_db() as con:
+        if con.execute("SELECT 1 FROM settings WHERE key = 'seeded'").fetchone() or con.execute("SELECT 1 FROM products LIMIT 1").fetchone():
+            con.execute("INSERT OR IGNORE INTO settings(key, value) VALUES ('seeded', '1')")
+            print("la base ya tiene datos: no se carga la muestra")
+            return
         for pos, name in enumerate(CATEGORIES):
             if not con.execute("SELECT 1 FROM categories WHERE name = ?", (name,)).fetchone():
                 con.execute("INSERT INTO categories(name, slug, position) VALUES (?,?,?)", (name, slugify(name), pos))
@@ -99,6 +105,7 @@ def seed_catalog() -> None:
                 con.execute("INSERT INTO slides(kind, filename, original, title, button, link, position) VALUES ('banner',?,?,?,?,?,?)",
                             (info["filename"], info["original"], title, btn, link, pos))
             print("portada lista")
+        con.execute("INSERT OR IGNORE INTO settings(key, value) VALUES ('seeded', '1')")
 
 
 def seed_demo_metrics(n: int = 140) -> None:
